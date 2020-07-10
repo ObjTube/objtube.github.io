@@ -1,0 +1,103 @@
+<!-- jquery -->
+<%- js('lib/jquery/jquery.min') %>
+<%- js('lib/justified-gallery/js/jquery.justifiedGallery.min.js') %>
+<!-- clipboard -->
+<% if (is_post()){ %>
+  <%- js('lib/clipboard/clipboard.min') %>
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"<%= __('tooltip.copy_tip') %>\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "<%= __('tooltip.copied') %>");
+      e.clearSelection();
+    })
+  })
+  </script>
+<% } %>
+<%- js('js/main') %>
+<!-- search -->
+<% if (config.search && (page.search || page.type === "search")){ %>
+  <%- js('js/search.js') %>
+  <script type="text/javascript">
+  $(function() {
+
+    var $inputArea = $("input#search-input");
+    var $resultArea = document.querySelector("div#search-result");
+
+    $inputArea.focus(function() {
+      var search_path = "<%= config.search.path %>";
+      if (search_path.length == 0) {
+        search_path = "search.xml";
+      }
+      var path = "<%= config.root %>" + search_path;
+      searchFunc(path, 'search-input', 'search-result');
+    });
+
+    $inputArea.keydown(function(e) {
+      if (e.which == 13) {
+        e.preventDefault();
+      }
+    });
+
+    var observer = new MutationObserver(function(mutationsList, observer) {
+      if (mutationsList.length == 1) {
+        if (mutationsList[0].addedNodes.length) {
+          $(".search-no-result").hide();
+        } else if (mutationsList[0].removedNodes.length) {
+          $(".search-no-result").show(200);
+        }
+      }
+    });
+
+    observer.observe($resultArea, { childList: true });
+
+  });
+  </script>
+<% } %>
+<!-- Google Analytics -->
+<% if (theme.google_analytics.enabled && theme.google_analytics.id){ %>
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', '<%= theme.google_analytics.id %>', 'auto');
+        ga('send', 'pageview');
+    </script>
+<% } %>
+<!-- Baidu Analytics -->
+<% if (theme.baidu_analytics.enabled && theme.baidu_analytics.id){ %>
+    <script type="text/javascript">
+        var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "https://hm.baidu.com/hm.js?<%= theme.baidu_analytics.id %>";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+<% } %>
+<!-- Disqus Comments -->
+<% if (theme.disqus.enabled && theme.disqus.shortname){ %>
+    <script type="text/javascript">
+        var disqus_shortname = '<%= theme.disqus.shortname %>';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/<% if (page.comments){ %>embed.js<% } else { %>count.js<% } %>';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+<% } %>
